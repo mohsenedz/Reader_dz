@@ -3,101 +3,127 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Dialog Reader</title>
+  <title>Reader_dz</title>
 </head>
 <body>
-  <h1>Dialog Reader</h1>
+  <h2>Wähle Stimmen:</h2>
 
-  <textarea id="dialog" rows="10" cols="50" placeholder="Max: Hallo Lisa!\nLisa: Hallo Max!"></textarea>
+  <label for="voice1">Stimme Max:</label>
+  <select id="voice1"></select>
+  <button onclick="testVoice('voice1')">Teste Max</button>
+
   <br><br>
 
-  <label for="maxVoice">Max Stimme:</label>
-  <select id="maxVoice"></select>
+  <label for="voice2">Stimme Lisa:</label>
+  <select id="voice2"></select>
+  <button onclick="testVoice('voice2')">Teste Lisa</button>
 
-  <label for="maxRate">Geschwindigkeit Max:</label>
-  <input type="number" id="maxRate" value="1" step="0.1" min="0.1" max="3">
   <br><br>
 
-  <label for="lisaVoice">Lisa Stimme:</label>
-  <select id="lisaVoice"></select>
+  <label for="rate1">Max Geschwindigkeit:</label>
+  <input type="number" id="rate1" min="0.1" max="3" value="1" step="0.1">
 
-  <label for="lisaRate">Geschwindigkeit Lisa:</label>
-  <input type="number" id="lisaRate" value="1" step="0.1" min="0.1" max="3">
   <br><br>
 
-  <button onclick="playDialog()">Play</button>
-  <button onclick="stopDialog()">Stop</button>
+  <label for="rate2">Lisa Geschwindigkeit:</label>
+  <input type="number" id="rate2" min="0.1" max="3" value="1" step="0.1">
+
+  <br><br>
+
+  <textarea id="text" rows="10" cols="50" placeholder="Schreibe hier deinen Dialog..."></textarea>
+
+  <br><br>
+
+  <button onclick="startReading()">Lesen</button>
+  <button onclick="stopReading()">Stopp</button>
 
   <script>
     let voices = [];
+    let utterance;
+    let queue = [];
+    let isReading = false;
+
+    function loadVoices() {
+      voices = speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('de'));
+      populateVoiceList();
+    }
 
     function populateVoiceList() {
-      voices = speechSynthesis.getVoices();
-      const maxVoiceSelect = document.getElementById('maxVoice');
-      const lisaVoiceSelect = document.getElementById('lisaVoice');
-
-      maxVoiceSelect.innerHTML = '';
-      lisaVoiceSelect.innerHTML = '';
+      const voiceSelect1 = document.getElementById('voice1');
+      const voiceSelect2 = document.getElementById('voice2');
+      voiceSelect1.innerHTML = '';
+      voiceSelect2.innerHTML = '';
 
       voices.forEach((voice, index) => {
         const option1 = document.createElement('option');
         option1.value = index;
-        option1.textContent = voice.name + ' (' + voice.lang + ')';
+        option1.textContent = `${voice.name} (${voice.lang})`;
+        voiceSelect1.appendChild(option1);
 
         const option2 = document.createElement('option');
         option2.value = index;
-        option2.textContent = voice.name + ' (' + voice.lang + ')';
-
-        maxVoiceSelect.appendChild(option1);
-        lisaVoiceSelect.appendChild(option2);
+        option2.textContent = `${voice.name} (${voice.lang})`;
+        voiceSelect2.appendChild(option2);
       });
     }
 
-    populateVoiceList();
-    if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-      speechSynthesis.onvoiceschanged = populateVoiceList;
-    }
-
-    function playDialog() {
-      speechSynthesis.cancel();
-
-      const dialog = document.getElementById('dialog').value.split(/[\r\n]+/);
-      const maxVoice = voices[document.getElementById('maxVoice').value];
-      const lisaVoice = voices[document.getElementById('lisaVoice').value];
-      const maxRate = parseFloat(document.getElementById('maxRate').value);
-      const lisaRate = parseFloat(document.getElementById('lisaRate').value);
-
-      let queue = [];
-
-      dialog.forEach(line => {
-        let [speaker, text] = line.split(':').map(s => s.trim());
-        if (speaker && text) {
-          let utter = new SpeechSynthesisUtterance(text);
-          if (speaker.toLowerCase() === 'max') {
-            utter.voice = maxVoice;
-            utter.rate = maxRate;
-          } else if (speaker.toLowerCase() === 'lisa') {
-            utter.voice = lisaVoice;
-            utter.rate = lisaRate;
-          }
-          queue.push(utter);
-        }
-      });
-
-      if (queue.length > 0) {
-        let speakNext = function(index) {
-          if (index < queue.length) {
-            queue[index].onend = () => speakNext(index + 1);
-            speechSynthesis.speak(queue[index]);
-          }
-        };
-        speakNext(0);
+    function testVoice(selectId) {
+      const selectedIndex = document.getElementById(selectId).value;
+      const selectedVoice = voices[selectedIndex];
+      if (selectedVoice) {
+        const utter = new SpeechSynthesisUtterance('Dies ist eine Teststimme.');
+        utter.voice = selectedVoice;
+        utter.rate = 1;
+        speechSynthesis.speak(utter);
       }
     }
 
-    function stopDialog() {
-      speechSynthesis.cancel();
+    function startReading() {
+      if (isReading) return;
+      const text = document.getElementById('text').value;
+      const lines = text.split('\n').filter(line => line.trim() !== '');
+      const voice1 = voices[document.getElementById('voice1').value];
+      const voice2 = voices[document.getElementById('voice2').value];
+      const rate1 = parseFloat(document.getElementById('rate1').value);
+      const rate2 = parseFloat(document.getElementById('rate2').value);
+
+      queue = lines.map(line => {
+        let utter = new SpeechSynthesisUtterance(line);
+        if (line.startsWith('Max:')) {
+          utter.voice = voice1;
+          utter.rate = rate1;
+        } else if (line.startsWith('Lisa:')) {
+          utter.voice = voice2;
+          utter.rate = rate2;
+        } else {
+          utter.voice = voice1;
+          utter.rate = rate1;
+        }
+        return utter;
+      });
+
+      isReading = true;
+      speakNext();
     }
+
+    function speakNext() {
+      if (queue.length === 0) {
+        isReading = false;
+        return;
+      }
+      const utter = queue.shift();
+      utter.onend = speakNext;
+      speechSynthesis.speak(utter);
+    }
+
+    function stopReading() {
+      speechSynthesis.cancel();
+      isReading = false;
+    }
+
+    speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
   </script>
 </body>
 </html>
+
