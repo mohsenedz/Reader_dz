@@ -1,0 +1,90 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Dialog Vorleser</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    select, input, button, textarea { margin: 10px 0; width: 100%; padding: 8px; }
+  </style>
+</head>
+<body>
+
+<h2>Dialog Vorleser (Max & Lisa)</h2>
+
+<label for="maxVoice">Wähle Max's Stimme:</label>
+<select id="maxVoice"></select>
+
+<label for="maxRate">Max's Sprechgeschwindigkeit:</label>
+<input type="range" id="maxRate" min="0.5" max="2" step="0.1" value="1">
+
+<label for="lisaVoice">Wähle Lisa's Stimme:</label>
+<select id="lisaVoice"></select>
+
+<label for="lisaRate">Lisa's Sprechgeschwindigkeit:</label>
+<input type="range" id="lisaRate" min="0.5" max="2" step="0.1" value="1">
+
+<label for="dialog">Dialog (z.B. Max: Hallo! Lisa: Guten Morgen!):</label>
+<textarea id="dialog" rows="10"></textarea>
+
+<button onclick="playDialog()">Vorlesen</button>
+
+<script>
+let voices = [];
+
+function loadVoices() {
+  voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('de'));
+  const maxVoiceSelect = document.getElementById('maxVoice');
+  const lisaVoiceSelect = document.getElementById('lisaVoice');
+
+  voices.forEach((voice, index) => {
+    const option1 = new Option(voice.name + " (" + voice.lang + ")", index);
+    const option2 = new Option(voice.name + " (" + voice.lang + ")", index);
+    maxVoiceSelect.add(option1);
+    lisaVoiceSelect.add(option2);
+  });
+}
+
+if (speechSynthesis.onvoiceschanged !== undefined) {
+  speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function playDialog() {
+  const dialog = document.getElementById('dialog').value.split(/[\r\n]+/);
+  const maxVoice = voices[document.getElementById('maxVoice').value];
+  const lisaVoice = voices[document.getElementById('lisaVoice').value];
+  const maxRate = parseFloat(document.getElementById('maxRate').value);
+  const lisaRate = parseFloat(document.getElementById('lisaRate').value);
+
+  let queue = [];
+
+  dialog.forEach(line => {
+    let [speaker, text] = line.split(':').map(s => s.trim());
+    if (speaker && text) {
+      let utter = new SpeechSynthesisUtterance(text);
+      if (speaker.toLowerCase() === 'max') {
+        utter.voice = maxVoice;
+        utter.rate = maxRate;
+      } else if (speaker.toLowerCase() === 'lisa') {
+        utter.voice = lisaVoice;
+        utter.rate = lisaRate;
+      }
+      queue.push(utter);
+    }
+  });
+
+  if (queue.length > 0) {
+    let speakNext = function(index) {
+      if (index < queue.length) {
+        queue[index].onend = () => speakNext(index + 1);
+        speechSynthesis.speak(queue[index]);
+      }
+    };
+    speakNext(0);
+  }
+}
+</script>
+
+</body>
+</html>
