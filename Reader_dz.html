@@ -1,163 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Doctor Invoice</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Service Form</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
- 
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background: url('img1.jpg') no-repeat center center fixed;
-      background-size: cover;
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
       padding: 20px;
       display: flex;
-      justify-content: center; 
-      align-items: center;     
-      height: 100vh;           
-      margin: 0; 
-    }
-    .form-container {
-      width: 100%;
-      max-width: 500px;
-      margin: 0 20px;
-      background: #f1fdf6;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    @media (min-width: 768px) {
-      .form-container {
-        max-width: 600px;
-      }
-    }
-    @media (min-width: 1024px) {
-      .form-container {
-        max-width: 700px;
-      }
-    }
-    h2 {
-      text-align: center;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    .btn {
-      background-color: #27ae60;
-      color: #fff;
-      border: none;
-      padding: 12px;
-      width: 100%;
-      font-size: 20px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background-color: #219150;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
 
-    /* قسم الطباعة */
-    #printSection {
-      display: none;
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 600px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    form {
+      display: grid;
+      gap: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .buttons, .code-display {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .buttons button {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      transition: background 0.3s;
+    }
+
+    .btn-print {
+      background-color: #28a745;
+    }
+
+    .btn-file {
+      background-color: #007bff;
+    }
+
+    .btn-pdf {
+      background-color: #dc3545;
+    }
+
+    .buttons button i {
+      margin-right: 8px;
+    }
+
+    .code-display {
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    @media (max-width: 500px) {
+      .buttons {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
-
-<div class="form-container">
-  <h2>Doctor Payment Form</h2>
-  <form id="paymentForm">
-    <div class="form-group">
-      <label for="firstName">First Name</label>
-      <input type="text" id="firstName" required>
-    </div>
-    <div class="form-group">
-      <label for="lastName">Last Name</label>
-      <input type="text" id="lastName" required>
-    </div>
-    <div class="form-group">
-      <label for="serviceType">Service Type</label>
-      <input type="text" id="serviceType" required>
-    </div>
-    <div class="form-group">
-      <label for="totalAmount">Total Amount (€)</label>
-      <input type="number" id="totalAmount" required>
-    </div>
-    <button type="submit" class="btn">Pay pdf</button>
+  <div class="container" id="pdfContent">
+    <h2>Service Form</h2>
+    <form id="serviceForm">
+      <div>
+        <label for="firstName">First Name</label>
+        <input type="text" id="firstName" placeholder="Enter first name" />
+      </div>
+      <div>
+        <label for="lastName">Last Name</label>
+        <input type="text" id="lastName" placeholder="Enter last name" />
+      </div>
+      <div>
+        <label for="serviceType">Service Type</label>
+        <select id="serviceType">
+          <option value="">Select a service</option>
+          <option>Consultation</option>
+          <option>Repair</option>
+          <option>Installation</option>
+        </select>
+      </div>
+      <div>
+        <label for="amount">Amount in Euro</label>
+        <input type="number" id="amount" placeholder="Enter amount" />
+      </div>
+      <div class="buttons" id="buttonGroup">
+        <button class="btn-print" type="button"><i class="fas fa-print"></i> Print</button>
+        <button class="btn-file" type="button"><i class="fas fa-file"></i> File</button>
+        <button class="btn-pdf" type="button" onclick="generatePDF()">PDF</button>
+      </div>
+      <div class="code-display" id="randomCode" style="display:none;"></div>
     </form>
-    
-     <h2 onclick="m()"  style="color:#fff; background:#27ae60;border:2px solid #27ae60;padding:7px;border-radius: 5px;">scan</h2>
-  
-  
-      <h2 onclick="m()"  style="color:green;border:2px solid green;padding:10px;">Register</h2>
-      
-  
-</div>
+  </div>
 
-<div id="invoicePreview" style="display: none; background: white; color: black; padding: 20px;">
-  <h2>Doctor Invoice Receipt</h2>
-  <p><strong>First Name:</strong> <span id="outFirstName"></span></p>
-  <p><strong>Last Name:</strong> <span id="outLastName"></span></p>
-  <p><strong>Service Type:</strong> <span id="outServiceType"></span></p>
-  <p><strong>Total Amount (€):</strong> <span id="outTotalAmount"></span></p>
-  <p><strong>Payment Code:</strong> <span id="outPaymentCode"></span></p>
-</div>
+  <script>
+    function generateRandomCode() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
 
-<script>
-  document.getElementById('paymentForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+    function generatePDF() {
+      const code = generateRandomCode();
 
-    const firstName = document.getElementById('firstName').value;
-    const lastName = document.getElementById('lastName').value;
-    const serviceType = document.getElementById('serviceType').value;
-    const totalAmount = document.getElementById('totalAmount').value;
-    const paymentCode = Math.floor(100000 + Math.random() * 900000);
+      // استبدال الأزرار بالرقم
+      document.getElementById('buttonGroup').style.display = 'none';
+      const codeDisplay = document.getElementById('randomCode');
+      codeDisplay.innerText = "Code: " + code;
+      codeDisplay.style.display = 'flex';
 
-    // تعبئة بيانات الفاتورة
-    document.getElementById('outFirstName').textContent = firstName;
-    document.getElementById('outLastName').textContent = lastName;
-    document.getElementById('outServiceType').textContent = serviceType;
-    document.getElementById('outTotalAmount').textContent = totalAmount;
-    document.getElementById('outPaymentCode').textContent = `#${paymentCode}`;
-
-    const invoiceElement = document.getElementById('invoicePreview');
-    invoiceElement.style.display = 'block';
-
-    // إنشاء PDF
-    html2pdf()
-      .set({
-        margin: 10,
-        filename: 'invoice_receipt.pdf',
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4' }
-      })
-      .from(invoiceElement)
-      .save()
-      .then(() => {
-        invoiceElement.style.display = 'none';
-        // عرض رسالة نجاح
-        Swal.fire({
-          icon: 'success',
-          title: 'تم إنشاء الفاتورة',
-          text: 'تم تحميل ملف PDF بنجاح!',
-          confirmButtonText: 'موافق'
-        });
+      // عرض إشعار النجاح
+      Swal.fire({
+        icon: 'success',
+        title: 'PDF Created',
+        text: 'Your PDF has been generated and downloaded.',
+        showConfirmButton: false,
+        timer: 1500
       });
-  });
-</script>
+
+      // إنشاء ملف PDF
+      const element = document.getElementById('pdfContent');
+      const opt = {
+        margin:       0.5,
+        filename:     `${code}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        // استعادة النموذج بعد التحميل
+        document.getElementById('buttonGroup').style.display = 'flex';
+        codeDisplay.style.display = 'none';
+      });
+    }
+  </script>
 </body>
 </html>
