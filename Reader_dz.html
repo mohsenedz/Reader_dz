@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <title>Doctor Invoice</title>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  
+ 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
@@ -99,10 +98,10 @@
       <input type="number" id="totalAmount" required>
     </div>
     <button type="submit" class="btn">Pay pdf</button>
-    
+    </form>
     
      <h2 onclick="m()"  style="color:#fff; background:#27ae60;border:2px solid #27ae60;padding:7px;border-radius: 5px;">scan</h2>
-  </form>
+  
   
       <h2 onclick="m()"  style="color:green;border:2px solid green;padding:10px;">Register</h2>
       
@@ -120,33 +119,45 @@
 
 <script>
   document.getElementById('paymentForm').addEventListener('submit', function(e) {
-  e.preventDefault();
+    e.preventDefault();
 
-  const firstName = document.getElementById('firstName').value;
-  const lastName = document.getElementById('lastName').value;
-  const serviceType = document.getElementById('serviceType').value;
-  const totalAmount = document.getElementById('totalAmount').value;
-  const paymentCode = Math.floor(100000 + Math.random() * 900000);
+    const firstName = document.getElementById('firstName').value;
+    const lastName = document.getElementById('lastName').value;
+    const serviceType = document.getElementById('serviceType').value;
+    const totalAmount = document.getElementById('totalAmount').value;
+    const paymentCode = Math.floor(100000 + Math.random() * 900000);
 
-  // تعبئة البيانات في معاينة الفاتورة
-  document.getElementById('outFirstName').textContent = firstName;
-  document.getElementById('outLastName').textContent = lastName;
-  document.getElementById('outServiceType').textContent = serviceType;
-  document.getElementById('outTotalAmount').textContent = totalAmount;
-  document.getElementById('outPaymentCode').textContent = `#${paymentCode}`;
+    // تعبئة بيانات الفاتورة
+    document.getElementById('outFirstName').textContent = firstName;
+    document.getElementById('outLastName').textContent = lastName;
+    document.getElementById('outServiceType').textContent = serviceType;
+    document.getElementById('outTotalAmount').textContent = totalAmount;
+    document.getElementById('outPaymentCode').textContent = `#${paymentCode}`;
 
-  const invoiceElement = document.getElementById('invoicePreview');
-  invoiceElement.style.display = 'block';
+    const invoiceElement = document.getElementById('invoicePreview');
+    invoiceElement.style.display = 'block';
 
-  html2pdf()
-    .set({ margin: 10, filename: 'invoice_receipt.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } })
-    .from(invoiceElement)
-    .save()
-    .then(() => {
-      invoiceElement.style.display = 'none';
-    });
-});
+    // إنشاء PDF
+    html2pdf()
+      .set({
+        margin: 10,
+        filename: 'invoice_receipt.pdf',
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4' }
+      })
+      .from(invoiceElement)
+      .save()
+      .then(() => {
+        invoiceElement.style.display = 'none';
+        // عرض رسالة نجاح
+        Swal.fire({
+          icon: 'success',
+          title: 'تم إنشاء الفاتورة',
+          text: 'تم تحميل ملف PDF بنجاح!',
+          confirmButtonText: 'موافق'
+        });
+      });
+  });
 </script>
-
 </body>
 </html>
