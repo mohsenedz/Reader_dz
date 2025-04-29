@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Doctor Invoice</title>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
@@ -75,7 +75,8 @@
 </head>
 <body>
 
-<div class="form-container">
+  <div class="form-container" id="invoiceContent">
+    
   <h2>Doctor Payment Form</h2>
   <form id="paymentForm">
     <div class="form-group">
@@ -98,6 +99,7 @@
   </form>
 </div>
 
+
 <!-- قسم الطباعة -->
 <div id="printSection">
   <h2>Doctor Invoice Receipt</h2>
@@ -118,22 +120,29 @@
     const totalAmount = document.getElementById('totalAmount').value;
     const paymentCode = Math.floor(100000 + Math.random() * 900000); // Random 6-digit code
 
-    Swal.fire({
-      title: 'Payment Successful!',
-      text: `Code: #${paymentCode}`,
-      icon: 'success',
-      confirmButtonText: 'Download Receipt'
-    }).then(() => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFontSize(14);
-      doc.text("Doctor Invoice Receipt", 20, 20);
-      doc.text(`First Name: ${firstName}`, 20, 40);
-      doc.text(`Last Name: ${lastName}`, 20, 50);
-      doc.text(`Service Type: ${serviceType}`, 20, 60);
-      doc.text(`Total Amount: $${totalAmount}`, 20, 70);
-      doc.text(`Payment Code: #${paymentCode}`, 20, 80);
-      doc.save("invoice_receipt.pdf");
+  Swal.fire({
+  title: 'Payment Successful!',
+  text: `Code: #${paymentCode}`,
+  icon: 'success',
+  confirmButtonText: 'Download Receipt'
+}).then(() => {
+  const form = document.querySelector('#paymentForm');
+  const btn = form.querySelector('.btn');
+  btn.style.display = 'none'; // إخفاء الزر مؤقتًا
+
+  // إدخال كود الدفع داخل الـ form قبل الحفظ
+  const paymentCodeElement = document.createElement('p');
+  paymentCodeElement.textContent = `Payment Code: #${paymentCode}`;
+  form.appendChild(paymentCodeElement);
+
+  // تحويل النموذج إلى PDF
+  const element = document.getElementById('invoiceContent');
+  html2pdf().from(element).save('invoice_receipt.pdf').then(() => {
+    // بعد التحميل: إعادة الزر كما كان
+    btn.style.display = 'block';
+    form.removeChild(paymentCodeElement); // إزالة كود الدفع من النموذج
+  });
+});
 
       // تعبئة قسم الطباعة
       document.getElementById('pFirstName').innerText = firstName;
@@ -151,7 +160,7 @@
       win.document.close();
       win.print();
     });
-  });
+ 
 </script>
 
 </body>
