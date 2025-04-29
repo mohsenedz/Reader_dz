@@ -2,84 +2,102 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>German Dual Voice Reader</title>
-  <script src="https://code.responsivevoice.org/responsivevoice.js?key=free"></script>
+  <title>قراءة نص بصوتين</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    select, input, button { margin: 10px 0; display: block; width: 100%; }
+  </style>
 </head>
 <body>
 
-<h1>German Dual Voice Reader</h1>
+<h2>قراءة نص ألماني بصوتين</h2>
 
-<textarea id="textInput" rows="8" cols="50" placeholder="اكتب نص الحوار هنا..."></textarea><br><br>
+<label for="voice1">اختر الصوت الأول:</label>
+<select id="voice1"></select>
 
-<label>الصوت الأول (مثلا Max):</label><br>
-<select id="voice1"></select><br><br>
+<label for="speed1">سرعة الصوت الأول:</label>
+<input type="range" id="speed1" min="0.5" max="2" step="0.1" value="1">
 
-<label>سرعة الصوت الأول:</label><br>
-<input type="range" id="rate1" min="0.5" max="2" step="0.1" value="1"><br><br>
+<label for="voice2">اختر الصوت الثاني:</label>
+<select id="voice2"></select>
 
-<label>الصوت الثاني (مثلا Lisa):</label><br>
-<select id="voice2"></select><br><br>
+<label for="speed2">سرعة الصوت الثاني:</label>
+<input type="range" id="speed2" min="0.5" max="2" step="0.1" value="1">
 
-<label>سرعة الصوت الثاني:</label><br>
-<input type="range" id="rate2" min="0.5" max="2" step="0.1" value="1"><br><br>
+<label for="text">النص الألماني:</label>
+<textarea id="text" rows="8" placeholder="اكتب نصاً بين شخصين هنا..."></textarea>
 
-<button onclick="startReading()">بدء القراءة</button>
-<button onclick="stopReading()">إيقاف</button>
+<button id="startBtn">تشغيل</button>
+<button id="pauseBtn">إيقاف مؤقت</button>
 
 <script>
-// الأصوات المتاحة
-const voices = [
-  {name: "Deutsch Male", value: "Deutsch Male"},
-  {name: "Deutsch Female", value: "Deutsch Female"},
-];
+let synth = window.speechSynthesis;
+let voices = [];
 
-// ملء القوائم بالصوتين
-const voice1Select = document.getElementById('voice1');
-const voice2Select = document.getElementById('voice2');
+function loadVoices() {
+  voices = synth.getVoices().filter(v => v.lang.startsWith('de'));
+  const voiceSelect1 = document.getElementById('voice1');
+  const voiceSelect2 = document.getElementById('voice2');
+  voiceSelect1.innerHTML = '';
+  voiceSelect2.innerHTML = '';
 
-voices.forEach(voice => {
-  const option1 = document.createElement('option');
-  option1.value = voice.value;
-  option1.textContent = voice.name;
-  voice1Select.appendChild(option1);
+  voices.forEach((voice, index) => {
+    const option1 = document.createElement('option');
+    option1.value = index;
+    option1.textContent = voice.name + ' (' + voice.lang + ')';
+    voiceSelect1.appendChild(option1);
 
-  const option2 = document.createElement('option');
-  option2.value = voice.value;
-  option2.textContent = voice.name;
-  voice2Select.appendChild(option2);
-});
+    const option2 = document.createElement('option');
+    option2.value = index;
+    option2.textContent = voice.name + ' (' + voice.lang + ')';
+    voiceSelect2.appendChild(option2);
+  });
+}
 
-function startReading() {
-  const text = document.getElementById('textInput').value.trim();
-  if (!text) return;
+if (speechSynthesis.onvoiceschanged !== undefined) {
+  speechSynthesis.onvoiceschanged = loadVoices;
+}
 
-  const parts = text.split('\n'); // افترض أن كل جملة في سطر منفصل
-  let index = 0;
+document.getElementById('startBtn').onclick = function() {
+  synth.cancel(); // تأكد أن لا يوجد قراءة سابقة
 
-  function readNext() {
-    if (index >= parts.length) return;
+  const text = document.getElementById('text').value.trim();
+  if (!text) return alert('اكتب نصًا أولاً!');
 
-    const currentLine = parts[index];
-    let voice, rate;
+  const parts = text.split(/(Max:|Lisa:)/).filter(p => p.trim() !== '');
+  const voice1 = voices[document.getElementById('voice1').value];
+  const speed1 = parseFloat(document.getElementById('speed1').value);
+  const voice2 = voices[document.getElementById('voice2').value];
+  const speed2 = parseFloat(document.getElementById('speed2').value);
 
-    if (index % 2 === 0) {
-      voice = document.getElementById('voice1').value;
-      rate = parseFloat(document.getElementById('rate1').value);
+  let utterances = [];
+
+  for (let i = 0; i < parts.length; i += 2) {
+    const speaker = parts[i];
+    const sentence = parts[i + 1] || '';
+
+    const utterance = new SpeechSynthesisUtterance(sentence.trim());
+    if (speaker.includes('Max')) {
+      utterance.voice = voice1;
+      utterance.rate = speed1;
+    } else if (speaker.includes('Lisa')) {
+      utterance.voice = voice2;
+      utterance.rate = speed2;
     } else {
-      voice = document.getElementById('voice2').value;
-      rate = parseFloat(document.getElementById('rate2').value);
+      utterance.voice = voice1; // افتراضيًا إذا لم يتم التمييز
+      utterance.rate = speed1;
     }
-
-    responsiveVoice.speak(currentLine, voice, {rate: rate, onend: readNext});
-    index++;
+    utterances.push(utterance);
   }
 
-  readNext();
-}
+  utterances.forEach(utt => synth.speak(utt));
+};
 
-function stopReading() {
-  responsiveVoice.cancel();
-}
+document.getElementById('pauseBtn').onclick = function() {
+  if (synth.speaking) {
+    synth.pause();
+  }
+};
 </script>
 
 </body>
