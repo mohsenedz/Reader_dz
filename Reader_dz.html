@@ -2,108 +2,134 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Deutsch Stimmen Leser</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    select, button, input { margin: 5px 0; width: 100%; padding: 10px; font-size: 16px; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Dialog Reader - Zwei Stimmen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        select, button, input {
+            margin: 5px 0;
+            padding: 8px;
+            width: 100%;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-top: 10px;
+            padding: 8px;
+        }
+    </style>
 </head>
 <body>
 
-<h1>Deutsch Stimmen Leser</h1>
+<h2>Dialog Reader - Zwei Stimmen</h2>
 
-<label for="voice1">Stimme 1 (Max):</label>
+<label for="voice1">Wähle Stimme 1 (z.B. Max):</label>
 <select id="voice1"></select>
 
-<label for="voice2">Stimme 2 (Lisa):</label>
+<label for="voice2">Wähle Stimme 2 (z.B. Lisa):</label>
 <select id="voice2"></select>
 
-<label for="speed1">Geschwindigkeit Stimme 1:</label>
-<input type="number" id="speed1" value="1" step="0.1" min="0.5" max="2">
+<label for="rate">Geschwindigkeit:</label>
+<input type="range" id="rate" min="0.5" max="2" value="1" step="0.1">
+<span id="rateValue">1</span>x
 
-<label for="speed2">Geschwindigkeit Stimme 2:</label>
-<input type="number" id="speed2" value="1" step="0.1" min="0.5" max="2">
+<textarea id="text" placeholder="Schreibe hier deinen Dialog..."></textarea>
 
-<label for="text">Text eingeben:</label>
-<textarea id="text" rows="6" style="width: 100%;"></textarea>
+<br>
 
-<button id="start">Start</button>
-<button id="stop">Stop</button>
+<button onclick="startReading()">Start</button>
+<button onclick="pauseReading()">Pause</button>
+<button onclick="resumeReading()">Fortsetzen</button>
 
 <script>
-let voices = [];
-let utterances = [];
-let currentIndex = 0;
-let speaking = false;
+    const voice1Select = document.getElementById('voice1');
+    const voice2Select = document.getElementById('voice2');
+    const rateInput = document.getElementById('rate');
+    const rateValue = document.getElementById('rateValue');
+    const textInput = document.getElementById('text');
 
-function loadVoices() {
-  voices = speechSynthesis.getVoices();
-  const germanVoices = voices.filter(voice => voice.lang.startsWith('de'));
+    let voices = [];
+    let currentUtterance = null;
+    let queue = [];
+    let paused = false;
 
-  const voice1Select = document.getElementById('voice1');
-  const voice2Select = document.getElementById('voice2');
-  voice1Select.innerHTML = '';
-  voice2Select.innerHTML = '';
+    function loadVoices() {
+        voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            voice1Select.innerHTML = '';
+            voice2Select.innerHTML = '';
+            voices.forEach((voice, index) => {
+                const option1 = document.createElement('option');
+                option1.value = index;
+                option1.textContent = `${voice.name} (${voice.lang})`;
+                voice1Select.appendChild(option1);
 
-  germanVoices.forEach((voice, index) => {
-    const option1 = document.createElement('option');
-    option1.value = index;
-    option1.textContent = voice.name;
-    voice1Select.appendChild(option1);
+                const option2 = document.createElement('option');
+                option2.value = index;
+                option2.textContent = `${voice.name} (${voice.lang})`;
+                voice2Select.appendChild(option2);
+            });
+        } else {
+            // إذا لم تظهر الأصوات، نحاول مرة أخرى بعد 500 ميلي ثانية
+            setTimeout(loadVoices, 500);
+        }
+    }
 
-    const option2 = document.createElement('option');
-    option2.value = index;
-    option2.textContent = voice.name;
-    voice2Select.appendChild(option2);
-  });
-}
+    speechSynthesis.onvoiceschanged = loadVoices;
+    window.onload = loadVoices;
 
-speechSynthesis.onvoiceschanged = loadVoices;
+    rateInput.addEventListener('input', () => {
+        rateValue.textContent = rateInput.value;
+    });
 
-function startReading() {
-  const text = document.getElementById('text').value;
-  const lines = text.split('\n').filter(line => line.trim() !== '');
-  if (lines.length === 0) return;
+    function startReading() {
+        window.speechSynthesis.cancel();
+        const lines = textInput.value.split('\n').filter(line => line.trim() !== '');
+        queue = [];
 
-  const voice1Index = parseInt(document.getElementById('voice1').value);
-  const voice2Index = parseInt(document.getElementById('voice2').value);
-  const speed1 = parseFloat(document.getElementById('speed1').value);
-  const speed2 = parseFloat(document.getElementById('speed2').value);
+        lines.forEach(line => {
+            let utterance = new SpeechSynthesisUtterance(line);
+            if (line.startsWith('Max:')) {
+                utterance.voice = voices[voice1Select.value];
+            } else if (line.startsWith('Lisa:')) {
+                utterance.voice = voices[voice2Select.value];
+            } else {
+                utterance.voice = voices[voice1Select.value];
+            }
+            utterance.rate = parseFloat(rateInput.value);
+            queue.push(utterance);
+        });
 
-  utterances = lines.map((line, idx) => {
-    const utterance = new SpeechSynthesisUtterance(line);
-    utterance.voice = (idx % 2 === 0) ? voices[voice1Index] : voices[voice2Index];
-    utterance.rate = (idx % 2 === 0) ? speed1 : speed2;
-    return utterance;
-  });
+        speakQueue();
+    }
 
-  currentIndex = 0;
-  speaking = true;
-  speakNext();
-}
+    function speakQueue() {
+        if (queue.length === 0) {
+            return;
+        }
+        currentUtterance = queue.shift();
+        window.speechSynthesis.speak(currentUtterance);
+        currentUtterance.onend = function() {
+            if (!paused) {
+                speakQueue();
+            }
+        };
+    }
 
-function speakNext() {
-  if (!speaking || currentIndex >= utterances.length) {
-    speaking = false;
-    return;
-  }
+    function pauseReading() {
+        paused = true;
+        window.speechSynthesis.pause();
+    }
 
-  speechSynthesis.speak(utterances[currentIndex]);
-  utterances[currentIndex].onend = () => {
-    currentIndex++;
-    speakNext();
-  };
-}
-
-function stopReading() {
-  speaking = false;
-  speechSynthesis.cancel();
-}
-
-document.getElementById('start').addEventListener('click', startReading);
-document.getElementById('stop').addEventListener('click', stopReading);
+    function resumeReading() {
+        paused = false;
+        window.speechSynthesis.resume();
+    }
 </script>
 
 </body>
 </html>
+
