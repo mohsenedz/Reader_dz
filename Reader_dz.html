@@ -148,39 +148,42 @@
     }
 
     function generatePDF() {
-      const code = generateRandomCode();
+  const code = generateRandomCode();
 
-      // استبدال الأزرار بالرقم
-      document.getElementById('buttonGroup').style.display = 'none';
-      const codeDisplay = document.getElementById('randomCode');
-      codeDisplay.innerText = "Code: " + code;
-      codeDisplay.style.display = 'flex';
+  document.getElementById('buttonGroup').style.display = 'none';
+  const codeDisplay = document.getElementById('randomCode');
+  codeDisplay.innerText = "Code: " + code;
+  codeDisplay.style.display = 'flex';
 
-      // عرض إشعار النجاح
-      Swal.fire({
-        icon: 'success',
-        title: 'PDF Created',
-        text: 'Your PDF has been generated and downloaded.',
-        showConfirmButton: false,
-        timer: 1500
-      });
+  // أضف كلاس التصغير قبل إنشاء PDF
+  const element = document.getElementById('pdfContent');
+  element.classList.add('pdf-mode');
 
-      // إنشاء ملف PDF
-      const element = document.getElementById('pdfContent');
-      const opt = {
-        margin:       0.5,
-        filename:     `${code}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-      };
+  const opt = {
+    margin:       0.5,
+    filename:     `${code}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
 
-      html2pdf().set(opt).from(element).save().then(() => {
-        // استعادة النموذج بعد التحميل
-        document.getElementById('buttonGroup').style.display = 'flex';
-        codeDisplay.style.display = 'none';
-      });
-    }
+  html2pdf().set(opt).from(element).save().then(() => {
+    // استعادة النموذج بعد التحميل
+    document.getElementById('buttonGroup').style.display = 'flex';
+    codeDisplay.style.display = 'none';
+
+    // إزالة كلاس التصغير بعد الانتهاء
+    element.classList.remove('pdf-mode');
+
+    Swal.fire({
+      icon: 'success',
+      title: 'PDF Created',
+      text: 'Your PDF has been generated and downloaded.',
+      showConfirmButton: false,
+      timer: 1500
+    });
+  });
+}
   </script>
 </body>
 </html>
