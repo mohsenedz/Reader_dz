@@ -1,135 +1,86 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <title>Dialog Reader - Zwei Stimmen</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        select, button, input {
-            margin: 5px 0;
-            padding: 8px;
-            width: 100%;
-        }
-        textarea {
-            width: 100%;
-            height: 150px;
-            margin-top: 10px;
-            padding: 8px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>German Dual Voice Reader</title>
+  <script src="https://code.responsivevoice.org/responsivevoice.js?key=free"></script>
 </head>
 <body>
 
-<h2>Dialog Reader - Zwei Stimmen</h2>
+<h1>German Dual Voice Reader</h1>
 
-<label for="voice1">Wähle Stimme 1 (z.B. Max):</label>
-<select id="voice1"></select>
+<textarea id="textInput" rows="8" cols="50" placeholder="اكتب نص الحوار هنا..."></textarea><br><br>
 
-<label for="voice2">Wähle Stimme 2 (z.B. Lisa):</label>
-<select id="voice2"></select>
+<label>الصوت الأول (مثلا Max):</label><br>
+<select id="voice1"></select><br><br>
 
-<label for="rate">Geschwindigkeit:</label>
-<input type="range" id="rate" min="0.5" max="2" value="1" step="0.1">
-<span id="rateValue">1</span>x
+<label>سرعة الصوت الأول:</label><br>
+<input type="range" id="rate1" min="0.5" max="2" step="0.1" value="1"><br><br>
 
-<textarea id="text" placeholder="Schreibe hier deinen Dialog..."></textarea>
+<label>الصوت الثاني (مثلا Lisa):</label><br>
+<select id="voice2"></select><br><br>
 
-<br>
+<label>سرعة الصوت الثاني:</label><br>
+<input type="range" id="rate2" min="0.5" max="2" step="0.1" value="1"><br><br>
 
-<button onclick="startReading()">Start</button>
-<button onclick="pauseReading()">Pause</button>
-<button onclick="resumeReading()">Fortsetzen</button>
+<button onclick="startReading()">بدء القراءة</button>
+<button onclick="stopReading()">إيقاف</button>
 
 <script>
-    const voice1Select = document.getElementById('voice1');
-    const voice2Select = document.getElementById('voice2');
-    const rateInput = document.getElementById('rate');
-    const rateValue = document.getElementById('rateValue');
-    const textInput = document.getElementById('text');
+// الأصوات المتاحة
+const voices = [
+  {name: "Deutsch Male", value: "Deutsch Male"},
+  {name: "Deutsch Female", value: "Deutsch Female"},
+];
 
-    let voices = [];
-    let currentUtterance = null;
-    let queue = [];
-    let paused = false;
+// ملء القوائم بالصوتين
+const voice1Select = document.getElementById('voice1');
+const voice2Select = document.getElementById('voice2');
 
-    function loadVoices() {
-        voices = window.speechSynthesis.getVoices();
-        if (voices.length > 0) {
-            voice1Select.innerHTML = '';
-            voice2Select.innerHTML = '';
-            voices.forEach((voice, index) => {
-                const option1 = document.createElement('option');
-                option1.value = index;
-                option1.textContent = `${voice.name} (${voice.lang})`;
-                voice1Select.appendChild(option1);
+voices.forEach(voice => {
+  const option1 = document.createElement('option');
+  option1.value = voice.value;
+  option1.textContent = voice.name;
+  voice1Select.appendChild(option1);
 
-                const option2 = document.createElement('option');
-                option2.value = index;
-                option2.textContent = `${voice.name} (${voice.lang})`;
-                voice2Select.appendChild(option2);
-            });
-        } else {
-            // إذا لم تظهر الأصوات، نحاول مرة أخرى بعد 500 ميلي ثانية
-            setTimeout(loadVoices, 500);
-        }
+  const option2 = document.createElement('option');
+  option2.value = voice.value;
+  option2.textContent = voice.name;
+  voice2Select.appendChild(option2);
+});
+
+function startReading() {
+  const text = document.getElementById('textInput').value.trim();
+  if (!text) return;
+
+  const parts = text.split('\n'); // افترض أن كل جملة في سطر منفصل
+  let index = 0;
+
+  function readNext() {
+    if (index >= parts.length) return;
+
+    const currentLine = parts[index];
+    let voice, rate;
+
+    if (index % 2 === 0) {
+      voice = document.getElementById('voice1').value;
+      rate = parseFloat(document.getElementById('rate1').value);
+    } else {
+      voice = document.getElementById('voice2').value;
+      rate = parseFloat(document.getElementById('rate2').value);
     }
 
-    speechSynthesis.onvoiceschanged = loadVoices;
-    window.onload = loadVoices;
+    responsiveVoice.speak(currentLine, voice, {rate: rate, onend: readNext});
+    index++;
+  }
 
-    rateInput.addEventListener('input', () => {
-        rateValue.textContent = rateInput.value;
-    });
+  readNext();
+}
 
-    function startReading() {
-        window.speechSynthesis.cancel();
-        const lines = textInput.value.split('\n').filter(line => line.trim() !== '');
-        queue = [];
-
-        lines.forEach(line => {
-            let utterance = new SpeechSynthesisUtterance(line);
-            if (line.startsWith('Max:')) {
-                utterance.voice = voices[voice1Select.value];
-            } else if (line.startsWith('Lisa:')) {
-                utterance.voice = voices[voice2Select.value];
-            } else {
-                utterance.voice = voices[voice1Select.value];
-            }
-            utterance.rate = parseFloat(rateInput.value);
-            queue.push(utterance);
-        });
-
-        speakQueue();
-    }
-
-    function speakQueue() {
-        if (queue.length === 0) {
-            return;
-        }
-        currentUtterance = queue.shift();
-        window.speechSynthesis.speak(currentUtterance);
-        currentUtterance.onend = function() {
-            if (!paused) {
-                speakQueue();
-            }
-        };
-    }
-
-    function pauseReading() {
-        paused = true;
-        window.speechSynthesis.pause();
-    }
-
-    function resumeReading() {
-        paused = false;
-        window.speechSynthesis.resume();
-    }
+function stopReading() {
+  responsiveVoice.cancel();
+}
 </script>
 
 </body>
 </html>
-
