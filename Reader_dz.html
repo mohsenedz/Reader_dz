@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Doctor Invoice</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -55,11 +59,11 @@
     }
     .btn {
       background-color: #27ae60;
-      color: white;
+      color: #fff;
       border: none;
       padding: 12px;
       width: 100%;
-      font-size: 16px;
+      font-size: 20px;
       border-radius: 5px;
       cursor: pointer;
     }
@@ -75,8 +79,7 @@
 </head>
 <body>
 
-  <div class="form-container" id="invoiceContent">
-    
+<div class="form-container">
   <h2>Doctor Payment Form</h2>
   <form id="paymentForm">
     <div class="form-group">
@@ -95,72 +98,54 @@
       <label for="totalAmount">Total Amount (€)</label>
       <input type="number" id="totalAmount" required>
     </div>
-    <button type="submit" class="btn">Pay Now</button>
+    <button type="submit" class="btn">Pay pdf</button>
+    
+    
+     <h2 onclick="m()"  style="color:#fff; background:#27ae60;border:2px solid #27ae60;padding:7px;border-radius: 5px;">scan</h2>
   </form>
+  
+      <h2 onclick="m()"  style="color:green;border:2px solid green;padding:10px;">Register</h2>
+      
+  
 </div>
 
-
-<!-- قسم الطباعة -->
-<div id="printSection">
+<div id="invoicePreview" style="display: none; background: white; color: black; padding: 20px;">
   <h2>Doctor Invoice Receipt</h2>
-  <p><strong>First Name:</strong> <span id="pFirstName"></span></p>
-  <p><strong>Last Name:</strong> <span id="pLastName"></span></p>
-  <p><strong>Service Type:</strong> <span id="pServiceType"></span></p>
-  <p><strong>Total Amount:</strong> <span id="pAmount"></span> €</p>
-  <p><strong>Payment Code:</strong> <span id="pCode"></span></p>
+  <p><strong>First Name:</strong> <span id="outFirstName"></span></p>
+  <p><strong>Last Name:</strong> <span id="outLastName"></span></p>
+  <p><strong>Service Type:</strong> <span id="outServiceType"></span></p>
+  <p><strong>Total Amount (€):</strong> <span id="outTotalAmount"></span></p>
+  <p><strong>Payment Code:</strong> <span id="outPaymentCode"></span></p>
 </div>
 
 <script>
   document.getElementById('paymentForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    const firstName = document.getElementById('firstName').value;
-    const lastName = document.getElementById('lastName').value;
-    const serviceType = document.getElementById('serviceType').value;
-    const totalAmount = document.getElementById('totalAmount').value;
-    const paymentCode = Math.floor(100000 + Math.random() * 900000); // Random 6-digit code
+  const firstName = document.getElementById('firstName').value;
+  const lastName = document.getElementById('lastName').value;
+  const serviceType = document.getElementById('serviceType').value;
+  const totalAmount = document.getElementById('totalAmount').value;
+  const paymentCode = Math.floor(100000 + Math.random() * 900000);
 
-  Swal.fire({
-  title: 'Payment Successful!',
-  text: `Code: #${paymentCode}`,
-  icon: 'success',
-  confirmButtonText: 'Download Receipt'
-}).then(() => {
-  const form = document.querySelector('#paymentForm');
-  const btn = form.querySelector('.btn');
-  btn.style.display = 'none'; // إخفاء الزر مؤقتًا
+  // تعبئة البيانات في معاينة الفاتورة
+  document.getElementById('outFirstName').textContent = firstName;
+  document.getElementById('outLastName').textContent = lastName;
+  document.getElementById('outServiceType').textContent = serviceType;
+  document.getElementById('outTotalAmount').textContent = totalAmount;
+  document.getElementById('outPaymentCode').textContent = `#${paymentCode}`;
 
-  // إدخال كود الدفع داخل الـ form قبل الحفظ
-  const paymentCodeElement = document.createElement('p');
-  paymentCodeElement.textContent = `Payment Code: #${paymentCode}`;
-  form.appendChild(paymentCodeElement);
+  const invoiceElement = document.getElementById('invoicePreview');
+  invoiceElement.style.display = 'block';
 
-  // تحويل النموذج إلى PDF
-  const element = document.getElementById('invoiceContent');
-  html2pdf().from(element).save('invoice_receipt.pdf').then(() => {
-    // بعد التحميل: إعادة الزر كما كان
-    btn.style.display = 'block';
-    form.removeChild(paymentCodeElement); // إزالة كود الدفع من النموذج
-  });
-});
-
-      // تعبئة قسم الطباعة
-      document.getElementById('pFirstName').innerText = firstName;
-      document.getElementById('pLastName').innerText = lastName;
-      document.getElementById('pServiceType').innerText = serviceType;
-      document.getElementById('pAmount').innerText = totalAmount;
-      document.getElementById('pCode').innerText = `#${paymentCode}`;
-
-      // فتح نافذة الطباعة
-      const printContent = document.getElementById('printSection').innerHTML;
-      const win = window.open('', '', 'height=600,width=800');
-      win.document.write('<html><head><title>Invoice</title></head><body>');
-      win.document.write(printContent);
-      win.document.write('</body></html>');
-      win.document.close();
-      win.print();
+  html2pdf()
+    .set({ margin: 10, filename: 'invoice_receipt.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } })
+    .from(invoiceElement)
+    .save()
+    .then(() => {
+      invoiceElement.style.display = 'none';
     });
- 
+});
 </script>
 
 </body>
