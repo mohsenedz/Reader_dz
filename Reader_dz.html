@@ -87,6 +87,7 @@
 .pdf-mode {
   transform: scale(0.9);
   transform-origin: top left;
+  
 }
 
     
@@ -106,6 +107,29 @@
         flex-direction: column;
       }
     }
+    
+    
+    
+    
+    .file-item {
+  padding: 10px;
+  background: #333;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  position: relative;
+}
+.file-item:hover {
+  background: #444;
+}
+.file-buttons {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+.file-buttons button {
+  margin-left: 5px;
+}
   </style>
 </head>
 <body>
@@ -135,12 +159,20 @@
       </div>
       <div class="buttons" id="buttonGroup">
         <button class="btn-print" type="button" onclick="printPDF()"><i class="fas fa-print"></i> Print</button>
-        <button class="btn-file" type="button"><i class="fas fa-file"></i> File</button>
+        <button class="btn-file" type="button" onclick="showOverlay()"><i class="fas fa-file"></i> File</button>
         <button class="btn-pdf" type="button" onclick="generatePDF()">PDF</button>
       </div>
       <div class="code-display" id="randomCode" style="display:none;"></div>
     </form>
   </div>
+  
+  
+  <div id="fileOverlay" style="display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); color: white; padding: 20px; overflow-y: auto;">
+  <h2>Saved Files</h2>
+  <div id="fileList"></div>
+  <button onclick="hideOverlay()">Hide</button>
+  <button onclick="deleteAllFiles()">Delete All</button>
+</div>
 
   <script>
     function generateRandomCode() {
@@ -167,6 +199,9 @@
     jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
   };
 
+ 
+ saveCurrentContent(document.body.innerText);
+ 
   html2pdf().set(opt).from(element).save().then(() => {
     // استعادة النموذج بعد التحميل
     document.getElementById('buttonGroup').style.display = 'flex';
@@ -218,6 +253,9 @@
         printWindow.print();
       };
 
+saveCurrentContent(document.body.innerText);
+
+
       // استرجاع الواجهة
       document.getElementById('buttonGroup').style.display = 'flex';
       codeDisplay.style.display = 'none';
@@ -227,9 +265,145 @@
 
 
 
+function showOverlay() {
+  loadFileList();
+  document.getElementById("fileOverlay").style.display = "block";
+}
+
+function hideOverlay() {
+  document.getElementById("fileOverlay").style.display = "none";
+}
+
+function saveCurrentContent(content) {
+  const files = JSON.parse(localStorage.getItem("pdf_files") || "[]");
+  const timestamp = new Date().toLocaleString();
+  files.unshift({ content, timestamp });
+  localStorage.setItem("pdf_files", JSON.stringify(files));
+}
+
+function loadFileList() {
+  const fileList = document.getElementById("fileList");
+  fileList.innerHTML = "";
+
+  const files = JSON.parse(localStorage.getItem("pdf_files") || "[]");
+
+  files.forEach((file, index) => {
+    const item = document.createElement("div");
+    item.className = "file-item";
+    item.innerHTML = `
+      <div>${file.timestamp}</div>
+      <div class="file-buttons">
+        <button onclick="openFile(${index})">Open</button>
+        <button onclick="deleteFile(${index})">Delete</button>
+      </div>
+    `;
+    fileList.appendChild(item);
+  });
+}
+
+function deleteFile(index) {
+  const files = JSON.parse(localStorage.getItem("pdf_files") || "[]");
+  files.splice(index, 1);
+  localStorage.setItem("pdf_files", JSON.stringify(files));
+  loadFileList();
+}
+
+function deleteAllFiles() {
+  if (confirm("Are you sure you want to delete all files?")) {
+    localStorage.removeItem("pdf_files");
+    loadFileList();
+  }
+}
+
+function openFile(index) {
+  const files = JSON.parse(localStorage.getItem("pdf_files") || "[]");
+  const file = files[index];
+
+  const viewer = document.createElement("div");
+  viewer.style.position = "fixed";
+  viewer.style.top = "0";
+  viewer.style.left = "0";
+  viewer.style.width = "100vw";
+  viewer.style.height = "100vh";
+  viewer.style.background = "white";
+  viewer.style.zIndex = "1001";
+  viewer.style.padding = "20px";
+  viewer.style.overflow = "auto";
+  viewer.innerHTML = `
+    <button onclick="this.parentElement.remove()">Hide</button>
+    <div style="white-space: pre-wrap; color: black; margin-top: 20px;">${file.content}</div>
+  `;
+  document.body.appendChild(viewer);
+}
 
 
 
+
+
+// تخزين الملف الحالي
+function saveCurrentContent(content) {
+  const code = generateRandomCode();
+  const timestamp = new Date().toLocaleString();
+  const files = JSON.parse(localStorage.getItem('savedFiles') || '[]');
+  files.unshift({ code, content, timestamp });
+  localStorage.setItem('savedFiles', JSON.stringify(files));
+  loadFiles();
+}
+
+// تحميل الملفات في النافذة الجانبية
+function loadFiles() {
+  const fileList = document.getElementById('fileList');
+  fileList.innerHTML = '';
+  const files = JSON.parse(localStorage.getItem('savedFiles') || '[]');
+  files.forEach((file, index) => {
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    item.innerHTML = `
+      <strong>PDF ${file.code}</strong><br><small>${file.timestamp}</small>
+      <div class="file-buttons">
+        <button onclick="openFile(${index})">Open</button>
+        <button onclick="deleteFile(${index})">Delete</button>
+      </div>
+    `;
+    fileList.appendChild(item);
+  });
+}
+
+// فتح الملف في نافذة جديدة
+function openFile(index) {
+  const files = JSON.parse(localStorage.getItem('savedFiles') || '[]');
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <pre style="padding:20px;white-space:pre-wrap;">${files[index].content}</pre>
+    <button onclick="window.close()">Hide</button>
+  `);
+}
+
+// حذف ملف واحد
+function deleteFile(index) {
+  const files = JSON.parse(localStorage.getItem('savedFiles') || '[]');
+  files.splice(index, 1);
+  localStorage.setItem('savedFiles', JSON.stringify(files));
+  loadFiles();
+}
+
+// حذف كل الملفات
+function deleteAllFiles() {
+  if (confirm('Are you sure you want to delete all files?')) {
+    localStorage.removeItem('savedFiles');
+    loadFiles();
+  }
+}
+
+// إظهار/إخفاء النافذة الجانبية
+function showOverlay() {
+  document.getElementById('fileOverlay').style.display = 'block';
+  loadFiles();
+}
+
+function hideOverlay() {
+  document.getElementById('fileOverlay').style.display = 'none';
+}
   </script>
 </body>
 </html>
