@@ -134,7 +134,7 @@
         <input type="number" id="amount" placeholder="Enter amount" />
       </div>
       <div class="buttons" id="buttonGroup">
-        <button class="btn-print" type="button"><i class="fas fa-print"></i> Print</button>
+        <button class="btn-print" type="button" onclick="printPDF()"><i class="fas fa-print"></i> Print</button>
         <button class="btn-file" type="button"><i class="fas fa-file"></i> File</button>
         <button class="btn-pdf" type="button" onclick="generatePDF()">PDF</button>
       </div>
@@ -184,6 +184,52 @@
     });
   });
 }
+
+
+
+
+
+  function printPDF() {
+    const code = generateRandomCode();
+
+    document.getElementById('buttonGroup').style.display = 'none';
+    const codeDisplay = document.getElementById('randomCode');
+    codeDisplay.innerText = "Code: " + code;
+    codeDisplay.style.display = 'flex';
+
+    const element = document.getElementById('pdfContent');
+    element.classList.add('pdf-mode');
+
+    const opt = {
+      margin:       0.5,
+      filename:     `${code}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).outputPdf('bloburl').then((pdfUrl) => {
+      // فتح نافذة جديدة للطباعة
+      const printWindow = window.open(pdfUrl, '_blank');
+      printWindow.focus();
+
+      // محاولة تنفيذ الطباعة تلقائياً عند فتح النافذة
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+
+      // استرجاع الواجهة
+      document.getElementById('buttonGroup').style.display = 'flex';
+      codeDisplay.style.display = 'none';
+      element.classList.remove('pdf-mode');
+    });
+  }
+
+
+
+
+
+
   </script>
 </body>
 </html>
