@@ -10,7 +10,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f6f9;
+      background-image: url('img1.jpg');
       margin: 0;
       padding: 20px;
       display: flex;
@@ -20,7 +20,7 @@
     }
 
     .container {
-      background: white;
+      background: #94BDE9;
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
@@ -119,22 +119,83 @@
   cursor: pointer;
   position: relative;
 }
-.file-item:hover {
-  background: #444;
+.file-item {
+  background: #332FB9;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.3s;
 }
 .file-buttons {
-  position: absolute;
-  right: 10px;
-  top: 10px;
+  display: flex;
+  gap: 8px;
 }
+
 .file-buttons button {
-  margin-left: 5px;
+  background: navy;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
 }
+
+.file-item:hover {
+  background: navy;
+}
+
+
+.file-buttons button:hover {
+  background: red;
+}
+
+#fileList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width :90%;
+}
+
+
+
+
+
+#fileOverlay button {
+  background-color: #3D4AE5;
+  color: white;
+  border: 1px solid #3D4AE5;
+  padding:5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 10px 5px 0 0;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+
+#fileOverlay button:hover {
+  background-color: red;
+}
+
+
+
+
+
+
+
+
+
+
+
+
   </style>
 </head>
 <body>
   <div class="container" id="pdfContent">
-    <h2>Service Form</h2>
+    <h2>Doctor Mohsene</h2>
     <form id="serviceForm">
       <div>
         <label for="firstName">First Name</label>
@@ -154,7 +215,7 @@
         </select>
       </div>
       <div>
-        <label for="amount">Amount in Euro</label>
+        <label for="amount">Amount (€)</label>
         <input type="number" id="amount" placeholder="Enter amount" />
       </div>
       <div class="buttons" id="buttonGroup">
@@ -238,7 +299,7 @@
     const opt = {
       margin:       0.5,
       filename:     `${code}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
+      image:{ type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2 },
       jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
     };
