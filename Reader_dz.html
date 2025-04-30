@@ -180,45 +180,24 @@
     }
 
     function generatePDF() {
-  const code = generateRandomCode();
+  replaceInputsWithText(); // تحويل الحقول إلى نصوص
 
-  document.getElementById('buttonGroup').style.display = 'none';
-  const codeDisplay = document.getElementById('randomCode');
-  codeDisplay.innerText = "Code: " + code;
-  codeDisplay.style.display = 'flex';
-
-  // أضف كلاس التصغير قبل إنشاء PDF
   const element = document.getElementById('pdfContent');
-  element.classList.add('pdf-mode');
-
   const opt = {
-    margin:       0.5,
-    filename:     `${code}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    margin: 0.5,
+    filename: 'form.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
   };
 
- 
- saveCurrentContent(document.body.innerText);
- 
   html2pdf().set(opt).from(element).save().then(() => {
-    // استعادة النموذج بعد التحميل
-    document.getElementById('buttonGroup').style.display = 'flex';
-    codeDisplay.style.display = 'none';
-
-    // إزالة كلاس التصغير بعد الانتهاء
-    element.classList.remove('pdf-mode');
-
-    Swal.fire({
-      icon: 'success',
-      title: 'PDF Created',
-      text: 'Your PDF has been generated and downloaded.',
-      showConfirmButton: false,
-      timer: 1500
-    });
+    restoreInputs(); // إعادة الحقول إلى حالتها الأصلية
   });
 }
+
+ 
+ 
 
 
 
@@ -404,6 +383,54 @@ function showOverlay() {
 function hideOverlay() {
   document.getElementById('fileOverlay').style.display = 'none';
 }
+
+
+
+
+
+
+
+
+
+
+
+  function replaceInputsWithText() {
+    const inputs = document.querySelectorAll('input, select');
+    inputs.forEach(input => {
+      const span = document.createElement('span');
+      span.textContent = input.value || input.options?.[input.selectedIndex]?.text || '';
+      span.className = 'input-replacement';
+      input.parentNode.replaceChild(span, input);
+    });
+  }
+
+  function restoreInputs() {
+    const spans = document.querySelectorAll('.input-replacement');
+    spans.forEach(span => {
+      const input = document.createElement('input');
+      input.value = span.textContent;
+      span.parentNode.replaceChild(input, span);
+    });
+  }
+
+  function generatePDF() {
+    replaceInputsWithText(); // تحويل الحقول إلى نصوص
+
+    const element = document.getElementById('pdfContent');
+    const opt = {
+      margin: 0.5,
+      filename: 'form.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      restoreInputs(); // إعادة الحقول
+    });
+  }
+
+
   </script>
 </body>
 </html>
