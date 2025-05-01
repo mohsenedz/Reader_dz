@@ -22,7 +22,7 @@ background-size: cover;
     }
 
     .container {
-      background:  #ddffee;
+      background: #703596;
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
@@ -33,12 +33,15 @@ background-size: cover;
     h2 {
       text-align: center;
       margin-bottom: 30px;
-      color: #333;
+      color: #9DADDF;
+      font-size: 30px;
+      
     }
 
     form {
       display: grid;
       gap: 20px;
+      
     }
 
     label {
@@ -53,6 +56,7 @@ background-size: cover;
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 16px;
+      background: #9DADDF;
     }
 
     .buttons, .code-display {
@@ -84,13 +88,19 @@ background-size: cover;
 
     .btn-pdf {
       background-color: #dc3545;
+       margin: auto;
+  width: 100%;
+  max-width: 600px;
     }
 
 .pdf-mode {
   transform: scale(0.9);
-  transform-origin: top left;
+  transform-origin: center;
   
 }
+
+
+ 
 
     
     .buttons button i {
@@ -197,6 +207,7 @@ background-size: cover;
 </head>
 <body>
   <div class="container" id="pdfContent">
+
     <h2>Doctor Mohsene</h2>
     <form id="serviceForm">
       <div>
@@ -211,9 +222,12 @@ background-size: cover;
         <label for="serviceType">Service Type</label>
         <select id="serviceType">
           <option value="">Select a service</option>
-          <option>Consultation</option>
-          <option>Repair</option>
-          <option>Installation</option>
+          <option>Medical Check-up</option>
+          <option>Diagnosis and Treatment</option>
+          <option>Prescription of Medication</option>
+       
+       <option>Other</option>
+       
         </select>
       </div>
       <div>
@@ -231,7 +245,10 @@ background-size: cover;
   
   
   <div id="fileOverlay" style="display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); color: white; padding: 20px; overflow-y: auto;">
-  <h2>Saved Files</h2>
+      <h2>Saved Files</h2>
+      <input type="text" id="fileSearch" placeholder="Search file..." style="width: 85%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: none; font-size: 16px;" oninput="searchFiles()" />
+      
+  
   <div id="fileList"></div>
   <button onclick="hideOverlay()">Hide</button>
   <button onclick="deleteAllFiles()">Delete All</button>
@@ -480,6 +497,27 @@ function openFile(id) {
     confirmButtonText: 'Close'
   });
 }
+
+
+
+
+function searchFiles() {
+  const searchTerm = document.getElementById('fileSearch').value.toLowerCase();
+  const fileItems = document.querySelectorAll('#fileList .file-item');
+
+  fileItems.forEach(item => {
+    const fileName = item.textContent.toLowerCase();
+    if (fileName.includes(searchTerm)) {
+      item.style.border = '2px solid yellow';  // تمييز النتائج
+      item.style.display = 'flex';
+    } else {
+      item.style.border = 'none';
+      item.style.display = 'none'; // إخفاء غير المطابق
+    }
+  });
+}
+
+
   </script>
 </body>
 </html>
