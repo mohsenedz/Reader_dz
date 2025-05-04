@@ -214,7 +214,7 @@ background-size: cover;
         <label for="firstName">Full Name</label>
         <input type="text" id="firstName" placeholder="Enter first name" />
       
-      <div class="buttons" id="buttonGroup">
+     
       <div style="padding:6px;">
         <label for="serviceType">Service Type</label>
         <select id="serviceType">
@@ -224,7 +224,7 @@ background-size: cover;
           <option>Prescription of Medication (40€)</option>
        
         </select>
-      </div>
+      
       </div>
       
       </div>
@@ -274,8 +274,7 @@ background-size: cover;
       return Math.floor(100000 + Math.random() * 900000).toString();
     }
 
-    
-function generatePDF() {
+    function generatePDF() {
   const code = generateRandomCode();
 
   document.getElementById('buttonGroup').style.display = 'none';
@@ -319,6 +318,8 @@ function generatePDF() {
   
   
 }
+
+
 
 
 
