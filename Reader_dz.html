@@ -283,29 +283,27 @@ function generatePDF() {
   codeDisplay.innerText = "Code: " + code;
   codeDisplay.style.display = 'flex';
 
+  // أضف كلاس التصغير قبل إنشاء PDF
   const element = document.getElementById('pdfContent');
   element.classList.add('pdf-mode');
 
-  // احصل على أبعاد العنصر بالبوصة (لأن jsPDF يستخدم البوصة)
-  const elementWidth = element.offsetWidth;
-  const elementHeight = element.offsetHeight;
-  const dpi = 96; // عدد البكسلات في البوصة الواحدة
-  const widthInInches = elementWidth / dpi;
-  const heightInInches = elementHeight / dpi;
-
   const opt = {
-    margin:       0,
+    margin:       0.5,
     filename:     `${code}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'in', format: [widthInInches, heightInInches], orientation: 'portrait' }
+    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
   };
 
-  saveCurrentContent(code);
-
+ 
+ saveCurrentContent(code);
+ 
   html2pdf().set(opt).from(element).save().then(() => {
+    // استعادة النموذج بعد التحميل
     document.getElementById('buttonGroup').style.display = 'flex';
     codeDisplay.style.display = 'none';
+
+    // إزالة كلاس التصغير بعد الانتهاء
     element.classList.remove('pdf-mode');
 
     Swal.fire({
@@ -316,8 +314,11 @@ function generatePDF() {
       timer: 1500
     });
   });
+  
+  
+  
+  
 }
-
 
 
 
