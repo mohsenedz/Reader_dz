@@ -13,7 +13,12 @@
       background-image: url('img1.jpg');
 background-size: cover;
       
-      
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
 
     .container {
@@ -89,8 +94,8 @@ background-size: cover;
     }
 
 .pdf-mode {
-
-  
+  transform: scale(0.9);
+  transform-origin: center;
   
 }
 
@@ -209,7 +214,7 @@ background-size: cover;
 </head>
 <body>
   <div class="container" id="pdfContent">
-<div id="content">
+
     <h2>Doctor Mohsene</h2>
     <form id="serviceForm">
       <div>
@@ -264,7 +269,7 @@ background-size: cover;
    <div id="fileList"></div>
   
 </div>
-</div>
+
   <script>
     function generateRandomCode() {
       return Math.floor(100000 + Math.random() * 900000).toString();
@@ -279,28 +284,16 @@ background-size: cover;
   codeDisplay.style.display = 'flex';
 
   // أضف كلاس التصغير قبل إنشاء PDF
-  
-  const element = document.getElementById("content");
+  const element = document.getElementById('pdfContent');
+  element.classList.add('pdf-mode');
 
-    // حساب الطول الفعلي للمحتوى
-    const pxPerMm = 96 / 25.4;
-    const widthInMm = 210; // عرض A4
-    const heightInPx = element.scrollHeight;
-    const heightInMm = heightInPx / pxPerMm;
-
-    const opt = {
-      margin: 0,
-      filename:`${code}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: {
-        unit: 'mm',
-        format: [widthInMm, heightInMm],
-        orientation: 'portrait'
-      }
-    };
-
-    html2pdf().set(opt).from(element).save();
+  const opt = {
+    margin:       0.5,
+    filename:     `${code}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
 
  
  saveCurrentContent(code);
