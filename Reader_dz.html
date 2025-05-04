@@ -211,28 +211,33 @@ background-size: cover;
     <h2>Doctor Mohsene</h2>
     <form id="serviceForm">
       <div>
-        <label for="firstName">First Name</label>
+        <label for="firstName">Full Name</label>
         <input type="text" id="firstName" placeholder="Enter first name" />
-      </div>
-      <div>
-        <label for="lastName">Last Name</label>
-        <input type="text" id="lastName" placeholder="Enter last name" />
-      </div>
-      <div>
+      
+      <div class="buttons" id="buttonGroup">
+      <div style="padding:6px;">
         <label for="serviceType">Service Type</label>
         <select id="serviceType">
           <option value="">Select a service</option>
-          <option>Medical Check-up</option>
-          <option>Diagnosis and Treatment</option>
-          <option>Prescription of Medication</option>
-       
-       <option>Other</option>
+          <option>Medical Check-up (75€)</option>
+          <option>Diagnosis and Treatment (25€)</option>
+          <option>Prescription of Medication (40€)</option>
        
         </select>
       </div>
+      </div>
+      
+      </div>
+    
+      <div>
+        <label for="lastName">services</label>
+        <textarea id="lastName" placeholder="Select a service..." style="padding:50px 0px; width:100%; height:150px; background:#9DADDF;"></textarea> 
+      </div>
+      
+      
       <div>
         <label for="amount">Amount (€)</label>
-        <input type="number" id="amount" placeholder="Enter amount" />
+        <input type="text" id="amount" placeholder="Enter amount" />
       </div>
       <div class="buttons" id="buttonGroup">
         <button class="btn-print" type="button" onclick="printPDF()"><i class="fas fa-print"></i> Print</button>
@@ -269,7 +274,8 @@ background-size: cover;
       return Math.floor(100000 + Math.random() * 900000).toString();
     }
 
-    function generatePDF() {
+    
+function generatePDF() {
   const code = generateRandomCode();
 
   document.getElementById('buttonGroup').style.display = 'none';
@@ -277,27 +283,29 @@ background-size: cover;
   codeDisplay.innerText = "Code: " + code;
   codeDisplay.style.display = 'flex';
 
-  // أضف كلاس التصغير قبل إنشاء PDF
   const element = document.getElementById('pdfContent');
   element.classList.add('pdf-mode');
 
+  // احصل على أبعاد العنصر بالبوصة (لأن jsPDF يستخدم البوصة)
+  const elementWidth = element.offsetWidth;
+  const elementHeight = element.offsetHeight;
+  const dpi = 96; // عدد البكسلات في البوصة الواحدة
+  const widthInInches = elementWidth / dpi;
+  const heightInInches = elementHeight / dpi;
+
   const opt = {
-    margin:       0.5,
+    margin:       0,
     filename:     `${code}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    jsPDF:        { unit: 'in', format: [widthInInches, heightInInches], orientation: 'portrait' }
   };
 
- 
- saveCurrentContent(code);
- 
+  saveCurrentContent(code);
+
   html2pdf().set(opt).from(element).save().then(() => {
-    // استعادة النموذج بعد التحميل
     document.getElementById('buttonGroup').style.display = 'flex';
     codeDisplay.style.display = 'none';
-
-    // إزالة كلاس التصغير بعد الانتهاء
     element.classList.remove('pdf-mode');
 
     Swal.fire({
@@ -309,7 +317,6 @@ background-size: cover;
     });
   });
 }
-
 
 
 
@@ -351,6 +358,13 @@ saveCurrentContent(code);
       codeDisplay.style.display = 'none';
       element.classList.remove('pdf-mode');
     });
+    
+    
+    
+    
+  
+    
+    
   }
 
 
@@ -498,10 +512,10 @@ function openFile(id) {
   Swal.fire({
     title: file.name,
     html: `
-      <p><strong>First Name:</strong> ${file.data.firstName}</p>
-      <p><strong>Last Name:</strong> ${file.data.lastName}</p>
-      <p><strong>Service:</strong> ${file.data.serviceType}</p>
-      <p><strong>Amount:</strong> €${file.data.amount}</p>
+      <p><strong> Name:</strong> ${file.data.firstName}</p>
+      <p><strong>services:</strong> ${file.data.lastName}</p>
+      
+      <p><strong>Amount:</strong> ${file.data.amount}</p>
       <p><em>Saved at: ${new Date(file.data.timestamp).toLocaleString()}</em></p>
     `,
     confirmButtonText: 'Close'
@@ -551,6 +565,31 @@ function deleteAllFiles() {
 
 
 }
+
+
+
+  const serviceType = document.getElementById("serviceType");
+  const servicesBox = document.getElementById("lastName");
+  const amountBox = document.getElementById("amount");
+
+  serviceType.addEventListener("change", function () {
+    const selected = serviceType.value;
+    if (!selected || selected === "Other") return;
+
+    // أضف الخدمة مع +
+    if (servicesBox.value.trim() !== "") {
+      servicesBox.value += " + " + selected;
+    } else {
+      servicesBox.value = selected;
+    }
+
+    // استخرج كل الأرقام من النص
+    const prices = servicesBox.value.match(/\d+/g);
+    if (prices) {
+      const total = prices.reduce((sum, val) => sum + parseInt(val), 0);
+      amountBox.value = total + "€";
+    }
+  });
 
 
 
