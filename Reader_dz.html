@@ -94,7 +94,7 @@ background-size: cover;
     }
 
 .pdf-mode {
-  transform: scale(0.8);
+  transform: scale(0.9);
   transform-origin: center;
   
 }
@@ -194,13 +194,20 @@ background-size: cover;
 
 
 
+#lastName h6 {
+  margin-bottom: -15px ;
+   /* أو أي قيمة حسب المسافة التي تريدها */
+      justify-content: center;
+      align-items: center;
+}
 
 
 
-
-
-
-
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
 
 
   </style>
@@ -215,28 +222,19 @@ background-size: cover;
         <input type="text" id="firstName" placeholder="Enter first name" />
       
      
-      <div style="padding:6px;">
-        <label for="serviceType">Service Type</label>
-        <select id="serviceType">
-          <option value="">Select</option>
-          <option>Medical Check-up (75€)</option>
-          <option>Diagnosis and Treatment (25€)</option>
-          <option>Prescription of Medication (40€)</option>
-       
-        </select>
-      
+     <div class="no-print" style="padding:6px;">
+  <label for="serviceType">Service Type</label>
+  <select id="serviceType">
+    <option value="">Select</option>
+    <option>Medical Check-up (75€)</option>
+    <option>Diagnosis and Treatment (25€)</option>
+    <option>Prescription of Medication (40€)</option>
+  </select>
+</div>
+    </div>
+      <div for="lastName" id="lastName">
+        
       </div>
-      
-      </div>
-    
-      <div>
-        <label for="lastName">services</label>
-        <textarea id="lastName" placeholder="Select a service..." 
-  style="padding:10px 4px; width:100%; height:150px; background:#9DADDF; resize: none; overflow-y: auto; overflow-x: hidden;" wrap="soft">
-</textarea>
-
-      </div>
-      
       
       <div>
         <label for="amount">Amount (€)</label>
@@ -248,9 +246,9 @@ background-size: cover;
         <button class="btn-pdf" type="button" onclick="generatePDF()">PDF</button>
       </div>
       <div class="code-display" id="randomCode" style="display:none;"></div>
-  
-  </form>
+    </form>
   </div>
+  
   
   <div id="fileOverlay" style="display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); color: white; padding: 20px; overflow-y: auto;">
     
@@ -327,71 +325,48 @@ background-size: cover;
 
 
   function printPDF() {
-   
-   
-   
-    const textarea = document.getElementById('lastName');
-    const originalContent = textarea.value;
-
-    // أنشئ عنصر pre لتغليف النص
-    const pre = document.createElement('pre');
-    pre.textContent = originalContent;
-    pre.style.padding = '10px';
-    pre.style.background = '#9DADDF';
-    pre.style.minHeight = '150px';
-    pre.style.whiteSpace = 'pre-wrap';
-    pre.style.borderRadius = '8px';
-    pre.style.fontFamily = 'inherit';
-
-    // استبدل الـ textarea مؤقتًا
-    textarea.style.display = 'none';
-    textarea.parentNode.insertBefore(pre, textarea);
-
-    // توليد الـ PDF
-    const element = document.getElementById('pdfContent');
-html2pdf().from(element).save().then(() => {
-  // بعد الحفظ، أعد العنصر الأصلي
-  pre.remove();
-  textarea.style.display = 'block';
-
   const code = generateRandomCode();
 
   document.getElementById('buttonGroup').style.display = 'none';
+
   const codeDisplay = document.getElementById('randomCode');
   codeDisplay.innerText = "Code: " + code;
   codeDisplay.style.display = 'flex';
 
+  const element = document.getElementById('pdfContent');
   element.classList.add('pdf-mode');
 
+  // إخفاء كل عناصر no-print
+  const noPrintElements = document.querySelectorAll('.no-print');
+  noPrintElements.forEach(el => el.style.display = 'none');
+
   const opt = {
-    margin:       0.5,
-    filename:     `${code}.pdf`,
-    image:{ type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    margin: 0.5,
+    filename: `${code}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
   };
 
   html2pdf().set(opt).from(element).outputPdf('bloburl').then((pdfUrl) => {
     const printWindow = window.open(pdfUrl, '_blank');
     printWindow.focus();
+
     printWindow.onload = () => {
       printWindow.print();
     };
 
     saveCurrentContent(code);
 
+    // إرجاع الحالة الأصلية
     document.getElementById('buttonGroup').style.display = 'flex';
     codeDisplay.style.display = 'none';
     element.classList.remove('pdf-mode');
-  });
-});
-    
-    
-  
-    
-    
-  }
 
+    // إظهار عناصر no-print من جديد
+    noPrintElements.forEach(el => el.style.display = '');
+  });
+}
 
 
 function showOverlay() {
@@ -423,7 +398,7 @@ function showOverlay() {
 function saveCurrentContent(code) {
   const data = {
     firstName: document.getElementById('firstName').value,
-    lastName: document.getElementById('lastName').value,
+    lastName: document.getElementById('lastName').innerText,
     serviceType: document.getElementById('serviceType').value,
     amount: document.getElementById('amount').value,
     timestamp: new Date().toISOString()
@@ -498,18 +473,18 @@ function deleteAllFiles() {
 
 function openFile(index) {
   const files = JSON.parse(localStorage.getItem('files') || '[]');
-  const file = files[index];
+  
+
+const file = files[index];
 
   if (file && file.data) {
     document.getElementById('firstName').value = file.data.firstName || '';
-    document.getElementById('lastName').value = file.data.lastName || '';
+    document.getElementById('lastName').innerText = file.data.lastName || '';
     document.getElementById('serviceType').value = file.data.serviceType || '';
     document.getElementById('amount').value = file.data.amount || '';
     hideOverlay();
   }
 }
-
-
 
 
 
@@ -593,33 +568,39 @@ function deleteAllFiles() {
 
 
 
-  const serviceType = document.getElementById("serviceType");
-const servicesBox = document.getElementById("lastName");
-const amountBox = document.getElementById("amount");
+  const serviceSelect = document.getElementById('serviceType');
+  const displayDiv = document.querySelector('div[for="lastName"]');
+  const amountInput = document.getElementById('amount');
 
-serviceType.addEventListener("change", function () {
-  const selected = serviceType.value;
-  if (!selected || selected === "Other") return;
+  // استخدم هذه لتخزين كل الأسعار المُضافة
+  let selectedPrices = [];
 
-  // أضف الخدمة في سطر جديد
-  if (servicesBox.value.trim() !== "") {
-    servicesBox.value += "\n" + selected;
-  } else {
-    servicesBox.value = selected;
-  }
+  serviceSelect.addEventListener('change', () => {
+    const selectedOption = serviceSelect.value;
+    if (!selectedOption) return;
 
-  // استخرج كل الأرقام من الخانة
-  const prices = servicesBox.value.match(/\d+/g);
-  if (prices) {
-    const total = prices.reduce((sum, val) => sum + parseInt(val), 0);
-    amountBox.value = total + " €";
-  } else {
-    amountBox.value = "0 €";
-  }
+    // استخراج السعر من النص باستخدام regex
+    const match = selectedOption.match(/(\d+)\s*€/);
+    if (match) {
+      const price = parseInt(match[1]);
 
-  // إعادة القائمة للخيار الأول
+      // إضافة النص داخل h6 إلى الحاوية
+      const h6 = document.createElement('h6');
+      h6.textContent = selectedOption;
+      displayDiv.appendChild(h6);
+
+      // تحديث قائمة الأسعار
+      selectedPrices.push(price);
+
+      // جمع الأسعار وتحديث الحقل
+      const total = selectedPrices.reduce((acc, val) => acc + val, 0);
+      amountInput.value = total;
+    }
+
+     // إعادة القائمة للخيار الأول
   serviceType.selectedIndex = 0;
 });
+
 
   </script>
 </body>
