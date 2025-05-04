@@ -218,7 +218,7 @@ background-size: cover;
       <div style="padding:6px;">
         <label for="serviceType">Service Type</label>
         <select id="serviceType">
-          <option value="">Select a service</option>
+          <option value="">Select</option>
           <option>Medical Check-up (75€)</option>
           <option>Diagnosis and Treatment (25€)</option>
           <option>Prescription of Medication (40€)</option>
@@ -571,28 +571,32 @@ function deleteAllFiles() {
 
 
   const serviceType = document.getElementById("serviceType");
-  const servicesBox = document.getElementById("lastName");
-  const amountBox = document.getElementById("amount");
+const servicesBox = document.getElementById("lastName");
+const amountBox = document.getElementById("amount");
 
-  serviceType.addEventListener("change", function () {
-    const selected = serviceType.value;
-    if (!selected || selected === "Other") return;
+serviceType.addEventListener("change", function () {
+  const selected = serviceType.value;
+  if (!selected || selected === "Other") return;
 
-    // أضف الخدمة مع +
-    if (servicesBox.value.trim() !== "") {
-      servicesBox.value += " + " + selected;
-    } else {
-      servicesBox.value = selected;
-    }
+  // أضف الخدمة في سطر جديد
+  if (servicesBox.value.trim() !== "") {
+    servicesBox.value += "\n" + selected;
+  } else {
+    servicesBox.value = selected;
+  }
 
-    // استخرج كل الأرقام من النص
-    const prices = servicesBox.value.match(/\d+/g);
-    if (prices) {
-      const total = prices.reduce((sum, val) => sum + parseInt(val), 0);
-      amountBox.value = total + "€";
-    }
-  });
+  // استخرج كل الأرقام من الخانة
+  const prices = servicesBox.value.match(/\d+/g);
+  if (prices) {
+    const total = prices.reduce((sum, val) => sum + parseInt(val), 0);
+    amountBox.value = total + " €";
+  } else {
+    amountBox.value = "0 €";
+  }
 
+  // إعادة القائمة للخيار الأول
+  serviceType.selectedIndex = 0;
+});
 
 
   </script>
