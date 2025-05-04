@@ -327,44 +327,64 @@ background-size: cover;
 
 
   function printPDF() {
-    const code = generateRandomCode();
+   
+   
+   
+    const textarea = document.getElementById('lastName');
+    const originalContent = textarea.value;
 
-    document.getElementById('buttonGroup').style.display = 'none';
-    const codeDisplay = document.getElementById('randomCode');
-    codeDisplay.innerText = "Code: " + code;
-    codeDisplay.style.display = 'flex';
+    // أنشئ عنصر pre لتغليف النص
+    const pre = document.createElement('pre');
+    pre.textContent = originalContent;
+    pre.style.padding = '10px';
+    pre.style.background = '#9DADDF';
+    pre.style.minHeight = '150px';
+    pre.style.whiteSpace = 'pre-wrap';
+    pre.style.borderRadius = '8px';
+    pre.style.fontFamily = 'inherit';
 
+    // استبدل الـ textarea مؤقتًا
+    textarea.style.display = 'none';
+    textarea.parentNode.insertBefore(pre, textarea);
+
+    // توليد الـ PDF
     const element = document.getElementById('pdfContent');
-    element.classList.add('pdf-mode');
+html2pdf().from(element).save().then(() => {
+  // بعد الحفظ، أعد العنصر الأصلي
+  pre.remove();
+  textarea.style.display = 'block';
 
-    const opt = {
-      margin:       0.5,
-      filename:     `${code}.pdf`,
-      image:{ type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+  const code = generateRandomCode();
+
+  document.getElementById('buttonGroup').style.display = 'none';
+  const codeDisplay = document.getElementById('randomCode');
+  codeDisplay.innerText = "Code: " + code;
+  codeDisplay.style.display = 'flex';
+
+  element.classList.add('pdf-mode');
+
+  const opt = {
+    margin:       0.5,
+    filename:     `${code}.pdf`,
+    image:{ type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).outputPdf('bloburl').then((pdfUrl) => {
+    const printWindow = window.open(pdfUrl, '_blank');
+    printWindow.focus();
+    printWindow.onload = () => {
+      printWindow.print();
     };
 
-    html2pdf().set(opt).from(element).outputPdf('bloburl').then((pdfUrl) => {
-      // فتح نافذة جديدة للطباعة
-      const printWindow = window.open(pdfUrl, '_blank');
-      printWindow.focus();
+    saveCurrentContent(code);
 
-      // محاولة تنفيذ الطباعة تلقائياً عند فتح النافذة
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-
-saveCurrentContent(code);
-
-
-      // استرجاع الواجهة
-      document.getElementById('buttonGroup').style.display = 'flex';
-      codeDisplay.style.display = 'none';
-      element.classList.remove('pdf-mode');
-    });
-    
-    
+    document.getElementById('buttonGroup').style.display = 'flex';
+    codeDisplay.style.display = 'none';
+    element.classList.remove('pdf-mode');
+  });
+});
     
     
   
