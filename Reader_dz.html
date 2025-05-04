@@ -256,7 +256,7 @@ background-size: cover;
       
       
       <div style="padding: 7px;"><button onclick="hideOverlay()">Hide</button>
-  <button onclick="deleteAllFiles()">Delete All</button></div>
+  <button onclick="confirmDeleteAll()">Delete All</button></div>
       
       
   
@@ -392,7 +392,7 @@ function saveCurrentContent(code) {
 
   const file = {
     id: code,
-    name: `File-${code}.pdf`,
+    name: `${code}`,
     data
   };
 
@@ -526,6 +526,32 @@ function searchFiles() {
     }
   });
 }
+
+function confirmDeleteAll() {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "Do you really want to delete all files?",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete all!',
+    cancelButtonText: 'No'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      deleteAllFiles(); // نفذ عملية الحذف الفعلي هنا
+      Swal.fire('Deleted!', 'All files have been deleted.', 'success');
+    }
+  });
+}
+
+function deleteAllFiles() {
+  localStorage.removeItem('savedFiles');
+  showOverlay();
+
+
+}
+
 
 
   </script>
