@@ -229,7 +229,7 @@ background-size: cover;
       
       </div>
     
-      <div>
+      <div id="pdfContent">
         <label for="lastName">services</label>
         <textarea id="lastName" placeholder="Select a service..." style="padding:50px 0px; width:100%; height:150px; background:#9DADDF;"></textarea> 
       </div>
@@ -275,38 +275,42 @@ background-size: cover;
     }
 
     function generatePDF() {
-  // أخذ النص من حقل الخدمات
+  // أخذ النص من حقل الرسالة وتقسيمه إلى خدمات مفصولة بأسطر
   const servicesText = document.getElementById("lastName").value;
+  const services = servicesText.split("\n").filter(line => line.trim() !== "");
 
-  // إنشاء عنصر مؤقت لعرض النص مع فواصل أسطر
-  const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = servicesText
-    .split('\n') // تقسيم كل خدمة في سطر
-    .map(line => line.trim()) // إزالة الفراغات الزائدة
-    .filter(line => line !== '') // تجاهل الأسطر الفارغة
-    .map(line => `<div>${line}</div>`) // وضع كل خدمة في <div> منفصل
-    .join('');
-  tempDiv.style.whiteSpace = "pre-line";
-  tempDiv.style.background = "#9DADDF";
-  tempDiv.style.padding = "10px";
-  tempDiv.style.borderRadius = "8px";
+  // إنشاء عنصر يحتوي على كل الخدمات داخل إطار
+  const containerDiv = document.createElement("div");
+  containerDiv.style.whiteSpace = "pre-line";
+  containerDiv.style.background = "#F0F4FF";
+  containerDiv.style.padding = "15px";
+  containerDiv.style.borderRadius = "8px";
+  containerDiv.style.border = "2px solid #9DADDF";
+  containerDiv.style.marginTop = "10px";
 
-  // استبدال textarea مؤقتًا داخل pdfContent
+  // إضافة كل خدمة داخل div منفصل داخل الإطار
+  services.forEach(service => {
+    const serviceDiv = document.createElement("div");
+    serviceDiv.textContent = service;
+    serviceDiv.style.marginBottom = "6px";
+    containerDiv.appendChild(serviceDiv);
+  });
+
+  // إخفاء textarea مؤقتًا وإضافة العنصر المؤقت
   const originalTextarea = document.getElementById("lastName");
   originalTextarea.style.display = "none";
-  originalTextarea.parentNode.appendChild(tempDiv);
+  originalTextarea.parentNode.appendChild(containerDiv);
 
-  // توليد PDF
+  // توليد ملف PDF
   html2pdf()
     .from(document.getElementById("pdfContent"))
     .save()
     .then(() => {
-      // إعادة إظهار textarea بعد توليد الملف
-      tempDiv.remove();
+      // إعادة الحالة كما كانت
+      containerDiv.remove();
       originalTextarea.style.display = "block";
     });
 }
-
 
 
 
