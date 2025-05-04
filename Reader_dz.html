@@ -280,8 +280,13 @@ background-size: cover;
 
   // إنشاء عنصر مؤقت لعرض النص مع فواصل أسطر
   const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = servicesText.replace(/\n/g, "<br>"); // أضف هذا السطر لإظهار الأسطر الجديدة
-  tempDiv.style.whiteSpace = "pre-line"; // <-- هنا
+  tempDiv.innerHTML = servicesText
+    .split('\n') // تقسيم كل خدمة في سطر
+    .map(line => line.trim()) // إزالة الفراغات الزائدة
+    .filter(line => line !== '') // تجاهل الأسطر الفارغة
+    .map(line => `<div>${line}</div>`) // وضع كل خدمة في <div> منفصل
+    .join('');
+  tempDiv.style.whiteSpace = "pre-line";
   tempDiv.style.background = "#9DADDF";
   tempDiv.style.padding = "10px";
   tempDiv.style.borderRadius = "8px";
@@ -301,6 +306,7 @@ background-size: cover;
       originalTextarea.style.display = "block";
     });
 }
+
 
 
 
