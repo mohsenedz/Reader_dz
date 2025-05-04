@@ -94,7 +94,7 @@ background-size: cover;
     }
 
 .pdf-mode {
-  transform: scale(0.9);
+
   transform-origin: center;
   
 }
@@ -224,7 +224,7 @@ background-size: cover;
      
      <div class="no-print" style="padding:6px;">
   <label for="serviceType">Service Type</label>
-  <select id="serviceType">
+  <select id="serviceType" style="padding :5px">
     <option value="">Select</option>
     <option>Medical Check-up (75€)</option>
     <option>Diagnosis and Treatment (25€)</option>
@@ -284,16 +284,23 @@ background-size: cover;
   codeDisplay.style.display = 'flex';
 
   // أضف كلاس التصغير قبل إنشاء PDF
+  
   const element = document.getElementById('pdfContent');
-  element.classList.add('pdf-mode');
 
   const opt = {
-    margin:       0.5,
-    filename:     `${code}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    margin: 0,
+    filename: `${code}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: {
+      unit: 'px',
+      format: 'auto', // اجعل الحجم تلقائي حسب المحتوى
+      orientation: 'portrait'
+    },
+    pagebreak: { mode: ['avoid-all'] }
   };
+
+  html2pdf().set(opt).from(element).save();
 
  
  saveCurrentContent(code);
@@ -593,7 +600,7 @@ function deleteAllFiles() {
       selectedPrices.push(price);
 
       // جمع الأسعار وتحديث الحقل
-      const total = selectedPrices.reduce((acc, val) => acc + val, 0);
+      const total = selectedPrices.reduce((acc, val) => acc + val, 0)+"€";
       amountInput.value = total;
     }
 
