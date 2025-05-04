@@ -280,11 +280,11 @@ background-size: cover;
 
   // إنشاء عنصر مؤقت لعرض النص مع فواصل أسطر
   const tempDiv = document.createElement("div");
-
-tempDiv.style.whiteSpace = "pre-line"; // <-- هنا
-tempDiv.style.background = "#9DADDF";
-tempDiv.style.padding = "10px";
-tempDiv.style.borderRadius = "8px";
+  tempDiv.innerHTML = servicesText.replace(/\n/g, "<br>"); // أضف هذا السطر لإظهار الأسطر الجديدة
+  tempDiv.style.whiteSpace = "pre-line"; // <-- هنا
+  tempDiv.style.background = "#9DADDF";
+  tempDiv.style.padding = "10px";
+  tempDiv.style.borderRadius = "8px";
 
   // استبدال textarea مؤقتًا داخل pdfContent
   const originalTextarea = document.getElementById("lastName");
@@ -301,7 +301,6 @@ tempDiv.style.borderRadius = "8px";
       originalTextarea.style.display = "block";
     });
 }
-
 
 
 
